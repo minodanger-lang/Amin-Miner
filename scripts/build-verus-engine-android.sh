@@ -60,7 +60,10 @@ bash "$ROOT/scripts/prepare-primo-engine.sh"
 
 cmake -S "$ENGINE" -B "$BUILD/engine" \
   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=26 \
-  -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$PREFIX" \
+  -DCURL_LIBRARY="$PREFIX/lib/libcurl.a" \
+  -DCURL_INCLUDE_DIR="$PREFIX/include" \
+  -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER_TARGET=aarch64-linux-android26 \
   -DCMAKE_CXX_COMPILER_TARGET=aarch64-linux-android26 \
   -DCMAKE_INSTALL_PREFIX="$BUILD/install" \
