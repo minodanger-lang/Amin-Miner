@@ -114,6 +114,8 @@ class MiningService : Service() {
                 if (!stopping) stopMiner("انتهى المحرك برمز خروج $exitCode")
             } catch (e: Exception) {
                 stopMiner("تعذر تشغيل المحرك: ${e.message ?: "خطأ غير معروف"}")
+            } finally {
+                launchInProgress = false
             }
         }
     }
