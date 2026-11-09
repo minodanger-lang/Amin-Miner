@@ -28,6 +28,7 @@ class MiningService : Service() {
 
     @Volatile private var minerProcess: Process? = null
     @Volatile private var launchInProgress = false
+    private var cpuWakeLock: PowerManager.WakeLock? = null
     @Volatile private var monitorThread: Thread? = null
     @Volatile private var stopping = false
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
@@ -93,6 +94,7 @@ class MiningService : Service() {
                 if (stopping) return@thread
                 val process = builder.start()
                 minerProcess = process
+                acquireCpuWakeLock()
                 updateStatus("اتصل المحرك وبدأ التشغيل؛ جارٍ انتظار بيانات المعدل")
                 monitorSafetyLimits()
 
@@ -183,6 +185,7 @@ class MiningService : Service() {
             }
         } catch (_: Exception) { }
         minerProcess = null
+        releaseCpuWakeLock()
         if (Build.VERSION.SDK_INT >= 29) {
             thermalListener?.let {
                 try { (getSystemService(POWER_SERVICE) as PowerManager).removeThermalStatusListener(it) } catch (_: Exception) { }
@@ -194,6 +197,21 @@ class MiningService : Service() {
         updateStatus(reason)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun acquireCpuWakeLock() {
+        try {
+            val power = getSystemService(POWER_SERVICE) as PowerManager
+            if (cpuWakeLock?.isHeld != true) {
+                cpuWakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AminMiner:Mining")
+                    .apply { setReferenceCounted(false); acquire() }
+            }
+        } catch (_: Exception) { }
+    }
+
+    private fun releaseCpuWakeLock() {
+        try { if (cpuWakeLock?.isHeld == true) cpuWakeLock?.release() } catch (_: Exception) { }
+        cpuWakeLock = null
     }
 
     private fun updateStatus(message: String) {
@@ -236,6 +254,7 @@ class MiningService : Service() {
     override fun onDestroy() {
         stopping = true
         minerProcess?.destroy()
+        releaseCpuWakeLock()
         monitorThread?.interrupt()
         if (Build.VERSION.SDK_INT >= 29) {
             thermalListener?.let {
