@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import java.io.File
 import kotlin.concurrent.thread
+import java.util.concurrent.TimeUnit
 
 class MiningService : Service() {
     companion object {
@@ -168,7 +169,7 @@ class MiningService : Service() {
             if (minerProcess?.isAlive == true) {
                 thread(name = "amin-miner-stop") {
                     try {
-                        if (minerProcess?.waitFor() == false) minerProcess?.destroyForcibly()
+                        if (minerProcess?.waitFor(3, TimeUnit.SECONDS) == false) minerProcess?.destroyForcibly()
                     } catch (_: Exception) {
                         minerProcess?.destroyForcibly()
                     }
@@ -215,8 +216,7 @@ class MiningService : Service() {
             this, 2, Intent(this, MiningService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL_ID)
-            else @Suppress("DEPRECATION") Notification.Builder(this)
+        val builder = Notification.Builder(this, CHANNEL_ID)
         return builder
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle("Amin Miner • Verus")
