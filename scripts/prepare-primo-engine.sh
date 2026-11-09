@@ -92,7 +92,7 @@ block = """# Amin Miner Android: satisfy static libcurl's mbedTLS dependencies.
 find_library(PRIMO_MBEDTLS_LIBRARY NAMES mbedtls REQUIRED)
 find_library(PRIMO_MBEDX509_LIBRARY NAMES mbedx509 REQUIRED)
 find_library(PRIMO_MBEDCRYPTO_LIBRARY NAMES mbedcrypto REQUIRED)
-target_link_libraries(primo-arm-miner PRIVATE
+target_link_libraries(primo-arm-miner
     ${PRIMO_MBEDTLS_LIBRARY}
     ${PRIMO_MBEDX509_LIBRARY}
     ${PRIMO_MBEDCRYPTO_LIBRARY}
