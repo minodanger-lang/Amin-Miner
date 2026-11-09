@@ -29,6 +29,7 @@ cat > "$ENGINE/src/dev_fee.cpp" <<'EOF'
 #include "dev_fee.h"
 
 extern "C" {
+const struct dev_fee_target *dev_fee_target_for_algo(algo_t) { return NULL; }
 int devfee_install_pool(void) { return -1; }
 void devfee_runtime_begin(void) {}
 bool devfee_is_dev_pool(int) { return false; }
