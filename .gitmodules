@@ -1,0 +1,3 @@
+[submodule "vendor/primo-arm-miner"]
+	path = vendor/primo-arm-miner
+	url = https://github.com/PrimoLab/primo-arm-miner.git
