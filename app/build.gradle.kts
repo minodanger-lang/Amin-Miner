@@ -39,6 +39,7 @@ android {
 
     packaging {
         jniLibs {
+            useLegacyPackaging = true
             keepDebugSymbols += "**/libprimo.so"
         }
     }
