@@ -10,9 +10,9 @@ The upstream engine is pinned as a Git submodule at:
 
 `scripts/prepare-primo-engine.sh` applies the Amin Miner fork policy by replacing the upstream scheduled developer-fee scheduler with API-compatible no-op functions. The patch is intentionally narrow: the upstream Stratum session/failover implementation remains unchanged.
 
-The script then **fails closed** while upstream TLS verification remains disabled. In this pinned revision, the Android wrapper resolves pool hostnames to IP literals before launching the native process, while the native TLS transport disables both peer and hostname verification. Simply enabling hostname verification would break those IP-literal URLs and would not preserve SNI. The next required engineering change is an Android-to-native DNS mapping that uses libcurl's `CURLOPT_RESOLVE` while retaining the original hostname in the URL; only then can TLS peer and hostname verification be safely enabled.
+The script then **fails closed** while upstream TLS verification remains disabled. Inspection of the pinned source found that the native transport already has a DNS fallback which injects resolved addresses through libcurl `CURLOPT_RESOLVE`; that mechanism retains the original hostname for SNI and hostname checks. The Android service separately rewrites configured pool URLs to IP literals before launching the native process, so that rewrite must be removed or replaced before verified TLS can work. The native fallback queries public DNS resolvers only after the platform resolver fails; this behavior must remain explicit and documented because it may bypass a user-configured private DNS/VPN resolver on that fallback path.
 
-Do not remove this gate, ship TLS with verification disabled, or silently downgrade TLS pools to plaintext.
+Enabling `CURLOPT_SSL_VERIFYPEER` and `CURLOPT_SSL_VERIFYHOST` is still not sufficient by itself: the current static curl/mbedTLS build explicitly omits a CA bundle and upstream documentation assumes certificate verification is disabled for self-signed pools. A trusted CA source and a tested policy for pools with self-signed certificates are required. Do not accept invalid certificates, ship TLS with verification disabled, or silently downgrade TLS pools to plaintext.
 
 ## Scope
 
