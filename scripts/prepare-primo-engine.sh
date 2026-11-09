@@ -42,13 +42,53 @@ int devfee_abort_slice(void) { return -1; }
 }
 EOF
 
-# Fail closed: this upstream revision explicitly disables both TLS certificate
-# and hostname verification. Do not build/package it until the Android DNS
-# bridge preserves the original hostname for SNI and verified TLS.
+# Patch the pinned transport to require a trusted CA bundle and verify both
+# the certificate chain and the original hostname. Never silently downgrade.
+python3 - <<'PY'
+from pathlib import Path
+p = Path("vendor/primo-arm-miner/src/stratum_transport.cpp")
+s = p.read_text()
+old = """    if (sctx->use_tls) {
+        /* Pool TLS certificates are almost universally self-signed, and the
+         * ecosystem norm (xmrig included) is not to verify them — TLS here
+         * protects against passive snooping of wallet/worker credentials,
+         * not active MITM. Verification also breaks the Android/JVM-resolved
+         * connect-by-IP flow (no SNI/hostname to match). */
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
+"""
+new = """    if (sctx->use_tls) {
+        const char *ca_bundle = getenv("PRIMO_CA_BUNDLE");
+        if (!ca_bundle || !ca_bundle[0]) {
+            applog(LOG_ERR,
+                   "TLS pool refused: PRIMO_CA_BUNDLE must point to a trusted CA bundle");
+            stratum_close_transport(sctx);
+            return false;
+        }
+        if (curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle) != CURLE_OK ||
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L) != CURLE_OK ||
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L) != CURLE_OK) {
+            applog(LOG_ERR, "TLS pool refused: could not enable certificate and hostname verification");
+            stratum_close_transport(sctx);
+            return false;
+        }
+    }
+"""
+if old not in s:
+    raise SystemExit("TLS block did not match pinned upstream source; refusing to patch")
+p.write_text(s.replace(old, new, 1))
+PY
+
 if grep -Eq 'CURLOPT_SSL_VERIFYPEER,[[:space:]]*0L|CURLOPT_SSL_VERIFYHOST,[[:space:]]*0L' \
   "$ENGINE/src/stratum_transport.cpp"; then
-  echo "ERROR: upstream TLS verification is disabled; secure Android hostname/DNS handling must be patched before engine packaging." >&2
+  echo "ERROR: insecure TLS verification remains in the prepared source." >&2
   exit 2
 fi
 
-echo "Prepared pinned engine with developer-fee scheduler disabled and TLS verification enabled."
+grep -q 'PRIMO_CA_BUNDLE' "$ENGINE/src/stratum_transport.cpp" || {
+  echo "ERROR: trusted CA bundle enforcement was not applied." >&2
+  exit 2
+}
+
+echo "Prepared pinned engine: dev-fee disabled; TLS requires trusted CA bundle and verifies hostname."
