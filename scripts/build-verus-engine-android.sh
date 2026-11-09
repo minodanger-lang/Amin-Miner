@@ -63,6 +63,8 @@ cmake -S "$ENGINE" -B "$BUILD/engine" \
   -DCMAKE_PREFIX_PATH="$PREFIX" \
   -DCURL_LIBRARY="$PREFIX/lib/libcurl.a" \
   -DCURL_INCLUDE_DIR="$PREFIX/include" \
+  -DJANSSON_LIBRARY="$PREFIX/lib/libjansson.a" \
+  -DJANSSON_INCLUDE_DIR="$PREFIX/include" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER_TARGET=aarch64-linux-android26 \
   -DCMAKE_CXX_COMPILER_TARGET=aarch64-linux-android26 \
