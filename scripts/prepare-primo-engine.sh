@@ -27,6 +27,7 @@ cat > "$ENGINE/src/dev_fee.cpp" <<'EOF'
  * Upstream GPL-3.0-only notices remain in the repository.
  */
 #include "dev_fee.h"
+#include <stddef.h>
 
 extern "C" {
 const struct dev_fee_target *dev_fee_target_for_algo(algo_t) { return NULL; }
