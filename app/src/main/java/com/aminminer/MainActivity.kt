@@ -55,7 +55,7 @@ class MainActivity : Activity() {
                 setText(value)
                 inputType = type
                 textSize = 15f
-                singleLine = true
+                setSingleLine(true)
                 setPadding(16, 8, 16, 8)
             }
 
