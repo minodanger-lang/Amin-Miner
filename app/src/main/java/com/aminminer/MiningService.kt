@@ -27,6 +27,7 @@ class MiningService : Service() {
     }
 
     @Volatile private var minerProcess: Process? = null
+    @Volatile private var launchInProgress = false
     @Volatile private var monitorThread: Thread? = null
     @Volatile private var stopping = false
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
@@ -40,7 +41,8 @@ class MiningService : Service() {
                 return START_NOT_STICKY
             }
             ACTION_START -> {
-                if (minerProcess != null) return START_NOT_STICKY
+                if (minerProcess != null || launchInProgress) return START_NOT_STICKY
+                launchInProgress = true
                 createNotificationChannel()
                 startForeground(NOTIFICATION_ID, notification("جارٍ تجهيز محرك التعدين"))
                 val pool = intent.getStringExtra(EXTRA_POOL).orEmpty()
@@ -53,6 +55,7 @@ class MiningService : Service() {
 
     private fun startMiner(pool: String, wallet: String) {
         if (!pool.startsWith("stratum+ssl://") || wallet.isBlank()) {
+            launchInProgress = false
             stopMiner("بيانات المجمع أو المحفظة غير صحيحة")
             return
         }
@@ -63,7 +66,7 @@ class MiningService : Service() {
                 val caBundle = File(File(filesDir, "verus-engine").apply { mkdirs() }, "cacert.pem")
                 copyAssetIfNeeded("verus-engine/cacert.pem", caBundle)
                 if (stopping) return@thread
-                if (!binary.setExecutable(true, true) || !binary.canExecute()) {
+                if (!binary.isFile || !binary.canExecute()) {
                     stopMiner("تعذر تفعيل صلاحية تشغيل محرك التعدين")
                     return@thread
                 }
