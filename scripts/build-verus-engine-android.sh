@@ -24,7 +24,7 @@ fetch_extract() {
   test -d "$SRC/$dir"
 }
 
-fetch_extract "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedtls-3.6.2.tar.gz" "mbedtls.tar.gz" "mbedtls-3.6.2"
+fetch_extract "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedtls-3.6.2.tar.bz2" "mbedtls.tar.bz2" "mbedtls-3.6.2"
 cmake -S "$SRC/mbedtls-3.6.2" -B "$BUILD/mbedtls" \
   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=26 \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
