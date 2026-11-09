@@ -59,11 +59,10 @@ class MiningService : Service() {
         stopping = false
         thread(name = "amin-miner-launch") {
             try {
-                val engineDir = File(filesDir, "verus-engine").apply { mkdirs() }
-                val binary = File(engineDir, "libprimo.so")
-                val caBundle = File(engineDir, "cacert.pem")
-                copyAssetIfNeeded("verus-engine/libprimo.so", binary)
+                val binary = File(applicationInfo.nativeLibraryDir, "libprimo.so")
+                val caBundle = File(File(filesDir, "verus-engine").apply { mkdirs() }, "cacert.pem")
                 copyAssetIfNeeded("verus-engine/cacert.pem", caBundle)
+                if (stopping) return@thread
                 if (!binary.setExecutable(true, true) || !binary.canExecute()) {
                     stopMiner("تعذر تفعيل صلاحية تشغيل محرك التعدين")
                     return@thread
@@ -88,6 +87,7 @@ class MiningService : Service() {
                 val builder = ProcessBuilder(command).redirectErrorStream(true)
                 builder.environment()["PRIMO_CA_BUNDLE"] = caBundle.absolutePath
                 builder.environment()["LD_LIBRARY_PATH"] = applicationInfo.nativeLibraryDir
+                if (stopping) return@thread
                 val process = builder.start()
                 minerProcess = process
                 updateStatus("اتصل المحرك وبدأ التشغيل؛ جارٍ انتظار بيانات المعدل")
@@ -164,14 +164,15 @@ class MiningService : Service() {
 
     private fun stopMiner(reason: String) {
         stopping = true
+        val processToStop = minerProcess
         try {
-            minerProcess?.destroy()
-            if (minerProcess?.isAlive == true) {
+            processToStop?.destroy()
+            if (processToStop?.isAlive == true) {
                 thread(name = "amin-miner-stop") {
                     try {
-                        if (minerProcess?.waitFor(3, TimeUnit.SECONDS) == false) minerProcess?.destroyForcibly()
+                        if (processToStop.waitFor(3, TimeUnit.SECONDS).not()) processToStop.destroyForcibly()
                     } catch (_: Exception) {
-                        minerProcess?.destroyForcibly()
+                        processToStop.destroyForcibly()
                     }
                 }
             }
