@@ -80,6 +80,31 @@ if old not in s:
 p.write_text(s.replace(old, new, 1))
 PY
 
+# Explicitly link the static mbedTLS archives required by static libcurl.
+# Upstream links CURL but its CMake target does not propagate these dependencies
+# for this Android cross-build, causing undefined mbedtls_* symbols at link time.
+python3 - <<'PY'
+from pathlib import Path
+p = Path("vendor/primo-arm-miner/CMakeLists.txt")
+s = p.read_text()
+marker = "# Installation"
+block = """# Amin Miner Android: satisfy static libcurl's mbedTLS dependencies.
+find_library(PRIMO_MBEDTLS_LIBRARY NAMES mbedtls REQUIRED)
+find_library(PRIMO_MBEDX509_LIBRARY NAMES mbedx509 REQUIRED)
+find_library(PRIMO_MBEDCRYPTO_LIBRARY NAMES mbedcrypto REQUIRED)
+target_link_libraries(primo-arm-miner PRIVATE
+    ${PRIMO_MBEDTLS_LIBRARY}
+    ${PRIMO_MBEDX509_LIBRARY}
+    ${PRIMO_MBEDCRYPTO_LIBRARY}
+)
+
+"""
+if "Amin Miner Android: satisfy static libcurl" not in s:
+    if marker not in s:
+        raise SystemExit("Engine CMake insertion point missing; refusing to patch")
+    p.write_text(s.replace(marker, block + marker, 1))
+PY
+
 if grep -Eq 'CURLOPT_SSL_VERIFYPEER,[[:space:]]*0L|CURLOPT_SSL_VERIFYHOST,[[:space:]]*0L' \
   "$ENGINE/src/stratum_transport.cpp"; then
   echo "ERROR: insecure TLS verification remains in the prepared source." >&2
