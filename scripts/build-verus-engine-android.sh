@@ -65,6 +65,9 @@ cmake -S "$ENGINE" -B "$BUILD/engine" \
   -DCURL_INCLUDE_DIR="$PREFIX/include" \
   -DJANSSON_LIBRARY="$PREFIX/lib/libjansson.a" \
   -DJANSSON_INCLUDE_DIR="$PREFIX/include" \
+  -DPRIMO_MBEDTLS_LIBRARY="$PREFIX/lib/libmbedtls.a" \
+  -DPRIMO_MBEDX509_LIBRARY="$PREFIX/lib/libmbedx509.a" \
+  -DPRIMO_MBEDCRYPTO_LIBRARY="$PREFIX/lib/libmbedcrypto.a" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER_TARGET=aarch64-linux-android26 \
   -DCMAKE_CXX_COMPILER_TARGET=aarch64-linux-android26 \
