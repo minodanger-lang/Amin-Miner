@@ -29,5 +29,9 @@ The final engine/coin choice is gated on measured sustained hashrate, accepted s
 - No cloud-mining claims, guaranteed returns, or fabricated balances.
 - Direct APK distribution only; Google Play policy does not allow on-device cryptocurrency mining apps.
 
+## Licensing
+
+The upstream candidate `PrimoLab/primo-arm-miner` declares **GPL-3.0-only** (not GPL-3.0-or-later). If its code is incorporated, the combined covered work and corresponding source must comply with GPL-3.0, including source availability and preservation of upstream copyright/license notices. Third-party components retain their own licenses; see `THIRD_PARTY_NOTICES.md` when added. This repository does not claim that the engine has been integrated yet.
+
 ## Project status
 This repository currently contains the Android project foundation. **Mining is not implemented yet**, and no APK has been built or tested on the target phone. The next milestone is a reproducible ARM64 benchmark and licensed engine integration.
