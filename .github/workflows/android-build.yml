@@ -56,10 +56,9 @@ jobs:
 
       - name: Package engine assets and GPL notices
         run: |
-          mkdir -p app/src/main/assets/verus-engine
+          mkdir -p app/src/main/assets/verus-engine app/src/main/jniLibs/arm64-v8a
           cp dist/verus-arm64/libprimo.so app/src/main/jniLibs/arm64-v8a/
           cp dist/verus-arm64/cacert.pem app/src/main/assets/verus-engine/
-          mkdir -p app/src/main/jniLibs/arm64-v8a
           cp dist/verus-arm64/libc++_shared.so app/src/main/jniLibs/arm64-v8a/
           cp vendor/primo-arm-miner/LICENSE app/src/main/assets/verus-engine/
           cp vendor/primo-arm-miner/NOTICE app/src/main/assets/verus-engine/
