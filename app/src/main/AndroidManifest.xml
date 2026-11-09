@@ -10,6 +10,14 @@
         android:label="Amin Miner"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <service
+            android:name=".MiningService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-started cryptocurrency mining with persistent notification and thermal/battery safeguards" />
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true">
