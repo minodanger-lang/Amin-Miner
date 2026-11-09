@@ -11,6 +11,31 @@ permissions:
   contents: read
 
 jobs:
+  build-verus-engine-arm64:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+    steps:
+      - name: Checkout pinned engine
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Android NDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - name: Build VerusHash engine for Android arm64
+        run: bash scripts/build-verus-engine-android.sh
+
+      - name: Upload ARM64 engine and trusted CA bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: amin-verus-engine-arm64
+          path: dist/verus-arm64/
+          if-no-files-found: error
+
   build-debug-apk:
     runs-on: ubuntu-latest
     env:
